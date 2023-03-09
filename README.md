@@ -1,6 +1,6 @@
 # Speaker's Speaking Rate Application
 
-This is a runbook explaining how to carry out the process related to the verification of the speech rate (or pace) of a speaker in a audio file (local, URL or real-time streaming).
+This is a runbook explaining how to carry out the process related to the verification of the speech rate (or pace) of a speaker in a audio file (local, URL or real-time streaming), using the AssemblyAI API.
 
 <ul><li> Note: For this process, I'm using the Ubuntu 20.04 LTS, so all the mentioned steps will be refered to the same OS. </ul>
 
