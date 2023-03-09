@@ -64,13 +64,6 @@ _Caption: Output in the terminal for the URL application_
 _Caption: Output in the terminal for the local file application_ 
 
 
-<ul><li> Note: For the real-time transcription, I couldn't test the application, due do the feature being paid and due to some errors in the Ubuntu enviroment. </ul>
-
-![image](https://user-images.githubusercontent.com/85353297/170802393-03e85ab3-79c4-4141-94bc-e5a69f0d5988.png)
-
-
-_Caption: Output in the terminal, errors in the process (paid feature and enviroment issues)_
-
 
 
 
