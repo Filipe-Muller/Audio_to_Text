@@ -4,15 +4,18 @@ import asyncio
 import base64
 import json
 
-auth_key = 'a47eb48ba4194ef0b0c875c21a41e1bd'
 
+AUTH_KEY = '<API_KEY>'
 FRAMES_PER_BUFFER = 3200
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
 RATE = 16000
+PACE_THRESHOLD_FAST = 160
+PACE_THRESHOLD_SLOW = 120
+
 p = pyaudio.PyAudio()
 
-# starts recording
+# Inicia a gravação
 stream = p.open(
     format=FORMAT,
     channels=CHANNELS,
@@ -25,10 +28,10 @@ URL = "wss://api.assemblyai.com/v2/realtime/ws?sample_rate=16000"
 
 
 async def send_receive():
-    print(f'Connecting websocket to url ${URL}')
+    print(f'Connecting websocket to url {URL}')
     async with websockets.connect(
         URL,
-        extra_headers=(("Authorization", auth_key),),
+        extra_headers=(("Authorization", AUTH_KEY),),
         ping_interval=5,
         ping_timeout=20
     ) as _ws:
@@ -69,23 +72,23 @@ async def send_receive():
 
         send_result, receive_result = await asyncio.gather(send(), receive())
 
-        # Speaker's speaking rate check (real time)
-        initial_audio = (int(json.loads()['audio_start']))
-        end_audio = (int(json.loads()['audio_end']))
+        # Verificação da taxa de fala do palestrante (em tempo real)
+        initial_audio = int(json.loads(result_str)['audio_start'])
+        end_audio = int(json.loads(result_str)['audio_end'])
         total_audio_time = end_audio - initial_audio
-        audio_in_minutes = total_audio_time/60000  # time conversion -> ms to min
-        words = json.loads()['text']
+        audio_in_minutes = total_audio_time / 60000  # Conversão de tempo de ms para minutos
+        words = json.loads(result_str)['text']
         count_words = words.split()
-        total_words = int(len(count_words))
-        pace = total_words/audio_in_minutes
+        total_words = len(count_words)
+        pace = total_words / audio_in_minutes
 
-        if(pace > 160):
-            print("\nThe speaker's speaking rate is too fast!\n")
+        match pace:
+            case _ if pace > PACE_THRESHOLD_FAST:
+                print("\nThe speaker's speaking rate is too fast!\n")
+            case _ if pace < PACE_THRESHOLD_SLOW:
+                print("\nThe speaker's speaking rate is too slow!\n")
+            case _:
+                print("\nThe speaker's speaking rate is OK!\n")
 
-        elif(pace < 120):
-            print("\nThe speaker's speaking rate is too slow!\n")
-
-        else:
-            print("\nThe speaker's speaking rate is OK!\n")
 
 asyncio.run(send_receive())
