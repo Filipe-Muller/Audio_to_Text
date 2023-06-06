@@ -1,114 +1,115 @@
 import requests
-import json
 from rich import print
 
-while(1):
+#Use the constants below as global ones
+API_KEY = "<API_KEY>"
+UPLOAD_ENDPOINT = "https://api.assemblyai.com/v2/upload"
+TRANSCRIPT_ENDPOINT = "https://api.assemblyai.com/v2/transcript"
 
-    # Selecting the type of upload (URL or local file)
-    method = input(
-        "\nType 1 to upload a file by URL or type 2 to upload a local file: ")
+SPEAKING_RATE_THRESHOLD_FAST = 160
+SPEAKING_RATE_THRESHOLD_SLOW = 120
 
-    # URL upload
-    if(method == '1'):
-        url = input(
-            "\nPlease insert the URL where the desired audio file for transcription is located: ")
+def make_request(url, method="GET", json_data=None):
+    headers = {
+        "authorization": API_KEY,
+        "content-type": "application/json"
+    }
 
-        print('\nPlease wait until your audio transcription is completed...')
-
-        base_endpoint = "https://api.assemblyai.com/v2/transcript"
-        json = {
-            "audio_url": url
-        }
-        headers = {
-            "authorization": "a47eb48ba4194ef0b0c875c21a41e1bd",
-            "content-type": "application/json"
-        }
-        response = requests.post(base_endpoint, json=json, headers=headers)
-        audio_id = response.json()['id']
-        endpoint = base_endpoint + "/" + audio_id
-
-        # Response (url)
-        headers = {
-            "authorization": "a47eb48ba4194ef0b0c875c21a41e1bd"
-        }
-        response = requests.get(endpoint, headers=headers)
-
-        while(response.json()['status'] == 'processing'):
-            headers = {"authorization": "a47eb48ba4194ef0b0c875c21a41e1bd"}
-            response = requests.get(endpoint, headers=headers)
-
-        # Speaker's speaking rate check (local file)
-        time_audio = (int(response.json()['audio_duration'])/60)
-        words = response.json()['text']
-        count_words = words.split()
-        total_words = int(len(count_words))
-        pace = total_words/time_audio
-
-        if(pace > 160):
-            print("\nThe speaker's speaking rate is too fast!\n")
-
-        elif(pace < 120):
-            print("\nThe speaker's speaking rate is too slow!\n")
-
-        else:
-            print("\nThe speaker's speaking rate is OK!\n")
-
-    # Local file upload
-    elif(method == '2'):
-        filename = input(
-            "\nPlease insert the local file path and the name of the file (with the format) desired for transcription is located: ")
-
-        print('\nPlease wait until your audio transcription is completed...')
-
-        def read_file(filename, chunk_size=5242880):
-            with open(filename, 'rb') as _file:
-                while True:
-                    data = _file.read(chunk_size)
-                    if not data:
-                        break
-                    yield data
-
-        headers = {'authorization': "a47eb48ba4194ef0b0c875c21a41e1bd"}
-        response_upload = requests.post(
-            'https://api.assemblyai.com/v2/upload', headers=headers, data=read_file(filename))
-        endpoint_upload = response_upload.json()['upload_url']
-
-        endpoint = "https://api.assemblyai.com/v2/transcript"
-        json = {"audio_url": endpoint_upload}
-        headers = {
-            "authorization": "a47eb48ba4194ef0b0c875c21a41e1bd",
-            "content-type": "application/json"
-        }
-        response = requests.post(endpoint, json=json, headers=headers)
-
-        audio_id = response.json()['id']
-        endpoint = endpoint + "/" + audio_id
-
-        # Response (local file)
-        headers = {
-            "authorization": "a47eb48ba4194ef0b0c875c21a41e1bd"
-        }
-        response = requests.get(endpoint, headers=headers)
-
-        while(response.json()['status'] == 'processing'):
-            headers = {"authorization": "a47eb48ba4194ef0b0c875c21a41e1bd"}
-            response = requests.get(endpoint, headers=headers)
-
-        # Speaker's speaking rate check (local file)
-        time_audio = (int(response.json()['audio_duration'])/60)
-        words = response.json()['text']
-        count_words = words.split()
-        total_words = int(len(count_words))
-        pace = total_words/time_audio
-
-        if(pace > 160):
-            print("\nThe speaker's speaking rate is too fast!\n")
-
-        elif(pace < 120):
-            print("\nThe speaker's speaking rate is too slow!\n")
-
-        else:
-            print("\nThe speaker's speaking rate is OK!\n")
-
+    if method == "GET":
+        response = requests.get(url, headers=headers)
+    elif method == "POST":
+        response = requests.post(url, json=json_data, headers=headers)
     else:
-        print("\nInvalid input, please run the code again!\n")
+        raise ValueError(f"Invalid request method: {method}")
+
+    response.raise_for_status()
+    return response.json()
+
+def get_audio_transcript(url):
+    json_data = {
+        "audio_url": url
+    }
+    response = make_request(TRANSCRIPT_ENDPOINT, method="POST", json_data=json_data)
+
+    audio_id = response['id']
+    endpoint = f"{TRANSCRIPT_ENDPOINT}/{audio_id}"
+
+    while True:
+        response = make_request(endpoint)
+        if response['status'] != 'processing':
+            break
+
+    return response
+
+def upload_local_file(filename):
+    print('\nPlease wait while your audio transcription is being processed...')
+
+    def read_file(filename, chunk_size=5242880):
+        with open(filename, 'rb') as _file:
+            while True:
+                data = _file.read(chunk_size)
+                if not data:
+                    break
+                yield data
+
+    response_upload = make_request(UPLOAD_ENDPOINT, method="POST", json_data=None)
+    endpoint_upload = response_upload['upload_url']
+
+    json_data = {"audio_url": endpoint_upload}
+    response = make_request(TRANSCRIPT_ENDPOINT, method="POST", json_data=json_data)
+
+    audio_id = response['id']
+    endpoint = f"{TRANSCRIPT_ENDPOINT}/{audio_id}"
+
+    while True:
+        response = make_request(endpoint)
+        if response['status'] != 'processing':
+            break
+
+    return response
+
+def check_speaking_rate(response):
+    audio_duration = int(response['audio_duration'])
+    words = response['text']
+    count_words = len(words.split())
+    pace = count_words / audio_duration * 60
+
+    match pace:
+        case _ if pace > SPEAKING_RATE_THRESHOLD_FAST:
+            print("\nThe speaker's speaking rate is too fast.")
+        case _ if pace < SPEAKING_RATE_THRESHOLD_SLOW:
+            print("\nThe speaker's speaking rate is too slow.")
+        case _:
+            print("\nThe speaker's speaking rate is within the acceptable range.")
+
+def get_user_input(prompt, valid_options):
+    while True:
+        user_input = input(prompt)
+        if user_input in valid_options:
+            return user_input
+        else:
+            print("Invalid input. Please try again.")
+
+def main():
+    while True:
+        method = get_user_input(
+            "\nType 1 to upload a file via URL or type 2 to upload a local file: ", ["1", "2"]
+        )
+
+        if method == '1':
+            url = input(
+                "\nPlease enter the URL where the desired audio file for transcription is located: "
+            )
+            response = get_audio_transcript(url)
+            check_speaking_rate(response)
+            break
+        elif method == '2':
+            filename = input(
+                "\nPlease enter the local file path and name (including the format) of the audio file for transcription: "
+            )
+            response = upload_local_file(filename)
+            check_speaking_rate(response)
+            break
+
+if __name__ == "__main__":
+    main()
