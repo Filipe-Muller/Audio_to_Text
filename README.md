@@ -39,9 +39,9 @@ This application has the purpose to transcribe an audio file (by a URL or upload
 
 The application currently consists of a single file that contains all the code necessary to run (except that the variables are in another file, to improve the readability).
 
-*audio_coding.py* -> This file has the ability to check the speech rate of any supported audio file (by a URL or via a local file), displaying the info using a simple UI
+<li><strong>audio_coding.py</strong> -> This file has the ability to check the speech rate of any supported audio file (by a URL or via a local file), displaying the info using a simple UI
 
-<ul><li> Note: Please access this [URL](https://www.assemblyai.com/docs/speech-to-text/speech-recognition) to check the complete documentation of the API used. </ul>
+Note: Please access this [URL](https://www.assemblyai.com/docs/speech-to-text/speech-recognition) to check the complete documentation of the API used.
 
 # How to obtain an API to run the application
 
