@@ -2,7 +2,7 @@
 
 This is a runbook explaining how to carry out the process related to the verification of the speech rate (or pace) of a speaker in a audio file (local, URL or real-time streaming), using the AssemblyAI API.
 
-<ul><li> Note: For this process, I'm using the Fedora 39, so all the mentioned steps will be refered to the same OS. </ul>
+<strong>Note</strong>: For this process, I'm using the Fedora 39, so all the mentioned steps will be refered to the same OS. </ul>
 
 # Prerequisites
 
@@ -41,7 +41,7 @@ The application currently consists of a single file that contains all the code n
 
 <li><strong>audio_coding.py</strong> -> This file has the ability to check the speech rate of any supported audio file (by a URL or via a local file), displaying the info using a simple UI
 
-Note: Please access this [URL](https://www.assemblyai.com/docs/speech-to-text/speech-recognition) to check the complete documentation of the API used.
+<strong>Note</strong>: Please access this [URL](https://www.assemblyai.com/docs/speech-to-text/speech-recognition) to check the complete documentation of the API used.
 
 # How to obtain an API to run the application
 
