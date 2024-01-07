@@ -1,6 +1,6 @@
 # Speaker's Speaking Rate Application
 
-This is a runbook explaining how to carry out the process related to the verification of the speech rate (or pace) of a speaker in a audio file (local, URL or real-time streaming), using the AssemblyAI API.
+This is a runbook explaining how to carry out the process related to the verification of the speech rate (or pace) of a speaker in a audio file (local or using an URL), using the AssemblyAI API.
 
 <strong>Note</strong>: For this process, I'm using the Fedora 39, so all the mentioned steps will be refered to the same OS. </ul>
 
